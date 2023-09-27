@@ -8,7 +8,7 @@ class CustomPlayer {
 		this._currentValue = 0;
 		this._intervalId = null;
 		this._isPaused = false;
-		this._callbacks = options.callbacks || [];
+		this._callback = options.callback;
 	}
 
 	get finalValue() {
@@ -41,10 +41,14 @@ class CustomPlayer {
 
 	set currentValue(value) {
 		this._currentValue = value;
-		if (this._callbacks.length > 0) {
-			for (let cb of this._callbacks) {
-				cb(this.currentValue);
+		if (this._currentValue > this._finalValue) {
+			if (this._loop) {
+				this.currentValue = 1;
+			} else {
+				this.stop();
 			}
+		} else {
+			this._callback(value);
 		}
 	}
 
@@ -52,14 +56,7 @@ class CustomPlayer {
 		if (!this._intervalId) {
 			this._intervalId = setInterval(() => {
 				if (!this._isPaused) {
-					this.currentValue += 1;
-					if (this._currentValue >= this._finalValue) {
-						if (this._loop) {
-							this.currentValue = 0;
-						} else {
-							this.stop();
-						}
-					}
+					this.currentValue += 1;			
 				}
 			}, this._timeStep);
 		} else {
@@ -81,25 +78,6 @@ class CustomPlayer {
 		if (this._onStop) {
 			this._onStop(this.currentValue);
 		}
-	}
-
-	rewind(value) {
-		if (!this._isPaused) {
-			this.currentValue = value;
-			if (this.currentValue >= this._finalValue) {
-				if (this._loop) {
-					this.currentValue = 0;
-				} else {
-					this.currentValue = this._finalValue;
-					this.pause();
-				}
-			}
-		}
-		this.valueChanged();
-	}
-
-	addCallback(cb) {
-		this._callbacks.push(cb);
 	}
 }
 

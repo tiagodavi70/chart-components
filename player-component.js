@@ -20,12 +20,11 @@ class TimePlayer extends LitElement {
 		this.loop = false;
 		this.isPlaying = false;
 
-		this.addCallback = cb => {
-			this.player.addCallback(cb);
-		}
-		this.player = new CustomPlayer({});
-		this.player.addCallback((value) => {
-			this.currentValue = value;
+		this.player = new CustomPlayer({
+			"callback": (value) => {
+				this.currentValue = value;
+				this.dispatchEvent(new CustomEvent("value-changed", {"detail": {"value": value}, bubbles: true, composed: true}));
+			}
 		});
 		this.player._onStop = () => {
 			this.isPlaying = false;
@@ -33,25 +32,25 @@ class TimePlayer extends LitElement {
 	}
 
 	static styles = css`
-	:host {
-		display: block;
-	}
-	.play::before {
-		content: "▶";
-	}
-	.pause::before {
-		content: "⏸";
-	}
-	.stop::before {
-		content: "⏹";
-	}
-	.sized {
-		width: 8vw;
-	}
+		:host {
+			display: block;
+		}
+		.play::before {
+			content: "▶";
+		}
+		.pause::before {
+			content: "⏸";
+		}
+		.stop::before {
+			content: "⏹";
+		}
+		.sized {
+			width: 8vw;
+		}
 	`;
 
 	willUpdate() {
-		this.player.currentValue = this.currentValue;
+		// this.player.currentValue = this.currentValue;
 		this.player.finalValue = this.finalValue;
 		this.player.timeStep = this.timeStep;
 		this.player.loop = this.loop;
@@ -84,7 +83,6 @@ class TimePlayer extends LitElement {
 	}
 
 	togglePlayPause() {
-		console.log(this.isPlaying ? "play" : "pause")
 		if (this.isPlaying) {
 			this.player.pause();
 		} else {
@@ -99,8 +97,8 @@ class TimePlayer extends LitElement {
 	}
 
 	handleChange(event) {
-		this.currentValue = parseInt(event.target.value, 10);
-		this.player.rewind(this.currentValue);
+		this.player.currentValue = parseInt(event.target.value, 10);
+		// this.player.rewind(this.currentValue);
 	}
 
 }

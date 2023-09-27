@@ -22,4 +22,10 @@
         <linechart-view width="800"></linechart-view>
         <matrix-view></matrix-view>
     </body>
+    <script>
+        let tp = document.querySelector("time-player");
+        tp.addEventListener("value-changed", function(evt) {
+            // console.log(this.currentValue, Date.now());
+        });
+    </script>
 </html>
