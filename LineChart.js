@@ -30,7 +30,8 @@ export function LineChart(data, {
   strokeWidth = 1.5, // stroke width of line
   strokeOpacity, // stroke opacity of line
   mixBlendMode = "multiply", // blend mode of lines
-  voronoi // show a Voronoi overlay? (for debugging)
+  voronoi, // show a Voronoi overlay? (for debugging)
+  pointData = undefined // point of the chart to highlight
 } = {}) {
   // Compute values.
   const X = d3.map(data, x);
@@ -71,9 +72,9 @@ export function LineChart(data, {
       .attr("viewBox", [0, 0, width, height])
       .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
       .style("-webkit-tap-highlight-color", "transparent")
-      // .on("pointerenter", pointerentered)
-      // .on("pointermove", pointermoved)
-      // .on("pointerleave", pointerleft)
+      .on("pointerenter", pointerentered)
+      .on("pointermove", pointermoved)
+      .on("pointerleave", pointerleft)
       .on("touchstart", event => event.preventDefault());
 
   // An optional Voronoi display (for fun).
@@ -129,12 +130,21 @@ export function LineChart(data, {
       .attr("text-anchor", "middle")
       .attr("y", -8);
 
+  if (pointData) {
+    svg.append("g").append("circle")
+      .attr("r", 5)
+      .attr("cx", xScale(pointData.x))
+      .attr("cy", yScale(pointData.y))
+      .attr("fill", "red")
+      .attr("stroke", "black")
+  }
+
   function pointermoved(event) {
     const [xm, ym] = d3.pointer(event);
     const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
     path.style("stroke", ([z]) => Z[i] === z ? null : "#ddd").filter(([z]) => Z[i] === z).raise();
     dot.attr("transform", `translate(${xScale(X[i])},${yScale(Y[i])})`);
-    if (T) dot.select("text").text(T[i]);
+    dot.select("text").text(`[${X[i]},${Y[i].toFixed(2)}]`);
     svg.property("value", O[i]).dispatch("input", {bubbles: true});
   }
 

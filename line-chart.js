@@ -6,7 +6,9 @@ export class LineChartView extends ChartView {
   static styles = css``;
 
   static properties = {
-    data: {type: String}
+    data: {type: String},
+    point: {type: Object},
+    xType: {type: Function}
   };
 
   constructor() {
@@ -15,7 +17,9 @@ export class LineChartView extends ChartView {
     this.z = d => d.z;
     this.y = d => d.y;
     this.x = d => d.x;
+    this.color = d3.scaleOrdinal(d3.schemeCategory10);
     this.xType = d3.scaleLinear;
+    this.point = undefined;
     this.voronoi = false;
   }
 
@@ -24,6 +28,8 @@ export class LineChartView extends ChartView {
       x: this.x,
       y: this.y,
       z: this.z,
+      pointData: this.point,
+      color: this.color,
       xType: this.xType,
       voronoi: this.voronoi
     }    
@@ -32,6 +38,5 @@ export class LineChartView extends ChartView {
   render() {
     return html`${LineChart(this.data, this.settings)}`;
   }
-
 }
 customElements.define('linechart-view', LineChartView);
