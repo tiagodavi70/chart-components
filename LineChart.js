@@ -133,16 +133,18 @@ export function LineChart(data, {
       .attr("y", -8);
   
   let circleData = svg.append("g").append("circle")
-    .attr("r", 5)
+    .attr("r", 3)
     .attr("id", "pointData")
-    .attr("fill", "red")
-    .attr("stroke", "black");
+    .attr("fill", "crimson")
+    .attr("stroke", "black")
+    .attr("display", `none`);
       
   if (interactive) {
     svg.on("click", pointerclick)
   }
   if (pointData) {
     circleData
+      .attr("display", null)
       .attr("cx", xScale(pointData.x))
       .attr("cy", yScale(pointData.y))
   }
@@ -180,6 +182,7 @@ export function LineChart(data, {
     const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
     
     circleData
+      .attr("display", null)
       .attr("cx", `${xScale(X[i])}`)
       .attr("cy", `${yScale(Y[i])}`)
 
