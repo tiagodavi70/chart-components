@@ -13,6 +13,7 @@
         <script src="colorscale.js" type="module"></script>
         <script src="matrix-view.js" type="module"></script>
         <script src="player-component.js" type="module"></script>
+        <script src="continuous-legend.js" type="module"></script>
     </head>
     
     <body>
@@ -21,6 +22,7 @@
         <barchart-view width="700"></barchart-view>
         <linechart-view width="800"></linechart-view>
         <matrix-view></matrix-view>
+        <continuous-legend></continuous-legend>
     </body>
     <script>
         let tp = document.querySelector("time-player");
@@ -36,5 +38,9 @@
         lchart.cb = function(d) {
             console.log(d);
         };
+
+        let cntscale = document.querySelector("continuous-legend");
+        cntscale.data = [116, 225.4];
+        cntscale.colors = ["purple", "yellow"];
     </script>
 </html>
