@@ -8,7 +8,10 @@ export class LineChartView extends ChartView {
   static properties = {
     data: {type: String},
     point: {type: Object},
-    xType: {type: Function}
+    xType: {type: Function},
+    point: {type: Object},
+    interactive: {type: Boolean},
+    cb: {type: Function}
   };
 
   constructor() {
@@ -21,6 +24,8 @@ export class LineChartView extends ChartView {
     this.xType = d3.scaleLinear;
     this.point = undefined;
     this.voronoi = false;
+    this.interactive = false;
+    this.cb = () => {};
   }
 
   get settings() {
@@ -31,7 +36,9 @@ export class LineChartView extends ChartView {
       pointData: this.point,
       color: this.color,
       xType: this.xType,
-      voronoi: this.voronoi
+      voronoi: this.voronoi,
+      interactive: this.interactive,
+      cb: this.cb
     }    
   }
 

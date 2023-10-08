@@ -31,7 +31,9 @@ export function LineChart(data, {
   strokeOpacity, // stroke opacity of line
   mixBlendMode = "multiply", // blend mode of lines
   voronoi, // show a Voronoi overlay? (for debugging)
-  pointData = undefined // point of the chart to highlight
+  pointData = undefined, // point of the chart to highlight
+  interactive = false, // marks are interactive by click or not
+  cb = () => {} // callback for point data selection (if interactive is enabled)
 } = {}) {
   // Compute values.
   const X = d3.map(data, x);
@@ -75,7 +77,7 @@ export function LineChart(data, {
       .on("pointerenter", pointerentered)
       .on("pointermove", pointermoved)
       .on("pointerleave", pointerleft)
-      .on("touchstart", event => event.preventDefault());
+      // .on("touchstart", event => event.preventDefault());
 
   // An optional Voronoi display (for fun).
   if (voronoi) svg.append("path")
@@ -131,21 +133,33 @@ export function LineChart(data, {
       .attr("y", -8);
 
   if (pointData) {
+    if (interactive) {
+      svg.on("click", pointerclick)
+    }
+
     svg.append("g").append("circle")
       .attr("r", 5)
+      .attr("id", "pointData")
       .attr("cx", xScale(pointData.x))
       .attr("cy", yScale(pointData.y))
       .attr("fill", "red")
       .attr("stroke", "black")
   }
 
+  let hoverActivated = true;
+
   function pointermoved(event) {
-    const [xm, ym] = d3.pointer(event);
-    const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
-    path.style("stroke", ([z]) => Z[i] === z ? null : "#ddd").filter(([z]) => Z[i] === z).raise();
-    dot.attr("transform", `translate(${xScale(X[i])},${yScale(Y[i])})`);
-    dot.select("text").text(`[${X[i]},${Y[i].toFixed(2)}]`);
-    svg.property("value", O[i]).dispatch("input", {bubbles: true});
+    
+    if (hoverActivated) {
+      const [xm, ym] = d3.pointer(event);
+      const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
+      path.style("stroke", ([z]) => Z[i] === z ? null : "#ddd").filter(([z]) => Z[i] === z).raise();
+  
+      dot.attr("transform", `translate(${xScale(X[i])},${yScale(Y[i])})`);
+      dot.select("text").text(`[${X[i]},${Y[i].toFixed(2)}]`);
+      
+      svg.property("value", Y[i]).dispatch("input", {bubbles: true});
+    }
   }
 
   function pointerentered() {
@@ -158,6 +172,19 @@ export function LineChart(data, {
     dot.attr("display", "none");
     svg.node().value = null;
     svg.dispatch("input", {bubbles: true});
+  }
+
+  function pointerclick(event) {
+    const [xm, ym] = d3.pointer(event);
+    const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
+    
+    svg.select("#pointData")
+      .attr("cx", `${xScale(X[i])}`)
+      .attr("cy", `${yScale(Y[i])}`)
+
+    svg.property("value", Y[i]).dispatch("input", {bubbles: true});
+    
+    cb({"x": X[i], "y": Y[i], "i": i});
   }
 
   return Object.assign(svg.node(), {value: null});

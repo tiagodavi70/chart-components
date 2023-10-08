@@ -25,14 +25,16 @@
     <script>
         let tp = document.querySelector("time-player");
         tp.addEventListener("value-changed", function(evt) {
-            // console.log(this.currentValue, Date.now());
+            console.log(evt);
         });
 
         let fakeData = d3.range(0,100).map((d) => ({"y": d3.randomUniform(1, 10)(), "x": d, "z": ["a", "b", "c", "d"][d3.randomInt(4)()]}));
-        // console.log(fakeData);
         let lchart = document.querySelector("linechart-view");
         lchart.data = fakeData;
         lchart.point = {"y": d3.randomUniform(1, 10)(), "x": d3.randomInt(100)(), "z": ["a", "b", "c", "d"][d3.randomInt(4)()]};
-
+        lchart.interactive = true;
+        lchart.cb = function(d) {
+            console.log(d);
+        };
     </script>
 </html>
