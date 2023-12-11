@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<meta charset="UTF-8">
+
+<head>
+    <title> Interaction Sandbox </title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.3.0/dist/themes/light.css" />
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.3.0/dist/shoelace-autoloader.js"></script>
+
+    <script src="matrix-view.js" type="module"></script>
+    <script src="bar-chart.js" type="module"></script>
+    <script src="line-chart.js" type="module"></script>
+    <script src="colorscale.js" type="module"></script>
+    <script src="matrix-view.js" type="module"></script>
+    <script src="player-component.js" type="module"></script>
+    <script src="continuous-legend.js" type="module"></script>
+</head>
+
+<body>
+    <barchart-view width="500"></barchart-view>
+    <linechart-view width="500"></linechart-view>
+</body>
+<script>
+    
+    let fakeData = d3.range(0, 100).map((d) => ({ "y": d3.randomUniform(1, 10)(), "x": d, "z": ["a", "b", "c", "d"][d3.randomInt(4)()] }));
+    let lchart = document.querySelector("linechart-view");
+    lchart.data = fakeData;
+    
+    lchart.interactive = true;
+    lchart.onSelect = function (d) {
+        console.log(d);
+    };
+</script>
+
+</html>

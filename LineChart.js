@@ -32,8 +32,7 @@ export function LineChart(data, {
   mixBlendMode = "multiply", // blend mode of lines
   voronoi, // show a Voronoi overlay? (for debugging)
   pointData = undefined, // point of the chart to highlight
-  interactive = false, // marks are interactive by click or not
-  cb = () => {} // callback for point data selection (if interactive is enabled)
+  onSelect = () => { } // callback for point data selection (if interactive is enabled)
 } = {}) {
   // Compute values.
   const X = d3.map(data, x);
@@ -63,82 +62,82 @@ export function LineChart(data, {
 
   // Construct a line generator.
   const line = d3.line()
-      .defined(i => D[i])
-      .curve(curve)
-      .x(i => xScale(X[i]))
-      .y(i => yScale(Y[i]));
+    .defined(i => D[i])
+    .curve(curve)
+    .x(i => xScale(X[i]))
+    .y(i => yScale(Y[i]));
 
   const svg = d3.create("svg")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", [0, 0, width, height])
-      .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
-      .style("-webkit-tap-highlight-color", "transparent")
-      .on("pointerenter", pointerentered)
-      .on("pointermove", pointermoved)
-      .on("pointerleave", pointerleft)
-      // .on("touchstart", event => event.preventDefault());
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
+    .style("-webkit-tap-highlight-color", "transparent")
+    .on("pointerenter", pointerentered)
+    .on("pointermove", pointermoved)
+    .on("pointerleave", pointerleft)
+  // .on("touchstart", event => event.preventDefault());
 
   // An optional Voronoi display (for fun).
   if (voronoi) svg.append("path")
-      .attr("fill", "none")
-      .attr("stroke", "#ccc")
-      .attr("d", d3.Delaunay
-        .from(I, i => xScale(X[i]), i => yScale(Y[i]))
-        .voronoi([0, 0, width, height])
-        .render());
+    .attr("fill", "none")
+    .attr("stroke", "#ccc")
+    .attr("d", d3.Delaunay
+      .from(I, i => xScale(X[i]), i => yScale(Y[i]))
+      .voronoi([0, 0, width, height])
+      .render());
 
   svg.append("g")
-      .attr("transform", `translate(0,${height - marginBottom})`)
-      .call(xAxis);
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(xAxis);
 
   svg.append("g")
-      .attr("transform", `translate(${marginLeft},0)`)
-      .call(yAxis)
-      .call(g => g.select(".domain").remove())
-      .call(voronoi ? () => {} : g => g.selectAll(".tick line").clone()
-          .attr("x2", width - marginLeft - marginRight)
-          .attr("stroke-opacity", 0.1))
-      .call(g => g.append("text")
-          .attr("x", -marginLeft)
-          .attr("y", 10)
-          .attr("fill", "currentColor")
-          .attr("text-anchor", "start")
-          .text(yLabel));
+    .attr("transform", `translate(${marginLeft},0)`)
+    .call(yAxis)
+    .call(g => g.select(".domain").remove())
+    .call(voronoi ? () => { } : g => g.selectAll(".tick line").clone()
+      .attr("x2", width - marginLeft - marginRight)
+      .attr("stroke-opacity", 0.1))
+    .call(g => g.append("text")
+      .attr("x", -marginLeft)
+      .attr("y", 10)
+      .attr("fill", "currentColor")
+      .attr("text-anchor", "start")
+      .text(yLabel));
 
   const path = svg.append("g")
-      .attr("fill", "none")
-      .attr("stroke", typeof color === "string" ? color : null)
-      .attr("stroke-linecap", strokeLinecap)
-      .attr("stroke-linejoin", strokeLinejoin)
-      .attr("stroke-width", strokeWidth)
-      .attr("stroke-opacity", strokeOpacity)
+    .attr("fill", "none")
+    .attr("stroke", typeof color === "string" ? color : null)
+    .attr("stroke-linecap", strokeLinecap)
+    .attr("stroke-linejoin", strokeLinejoin)
+    .attr("stroke-width", strokeWidth)
+    .attr("stroke-opacity", strokeOpacity)
     .selectAll("path")
     .data(d3.group(I, i => Z[i]))
     .join("path")
-      .style("mix-blend-mode", mixBlendMode)
-      .attr("stroke", typeof color === "function" ? ([z]) => color(z) : null)
-      .attr("d", ([, I]) => line(I));
+    .style("mix-blend-mode", mixBlendMode)
+    .attr("stroke", typeof color === "function" ? ([z]) => color(z) : null)
+    .attr("d", ([, I]) => line(I));
 
   const dot = svg.append("g")
-      .attr("display", "none");
+    .attr("display", "none");
 
   dot.append("circle")
-      .attr("r", 2.5);
+    .attr("r", 2.5);
 
   dot.append("text")
-      .attr("font-family", "sans-serif")
-      .attr("font-size", 10)
-      .attr("text-anchor", "middle")
-      .attr("y", -8);
-  
+    .attr("font-family", "sans-serif")
+    .attr("font-size", 10)
+    .attr("text-anchor", "middle")
+    .attr("y", -8);
+
   let circleData = svg.append("g").append("circle")
     .attr("r", 3)
     .attr("id", "pointData")
     .attr("fill", "crimson")
     .attr("stroke", "black")
     .attr("display", `none`);
-      
+
   if (interactive) {
     svg.on("click", pointerclick)
   }
@@ -152,16 +151,16 @@ export function LineChart(data, {
   let hoverActivated = true;
 
   function pointermoved(event) {
-    
+
     if (hoverActivated) {
       const [xm, ym] = d3.pointer(event);
       const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
       path.style("stroke", ([z]) => Z[i] === z ? null : "#ddd").filter(([z]) => Z[i] === z).raise();
-  
+
       dot.attr("transform", `translate(${xScale(X[i])},${yScale(Y[i])})`);
       dot.select("text").text(`[${X[i]},${Y[i].toFixed(2)}]`);
-      
-      svg.property("value", Y[i]).dispatch("input", {bubbles: true});
+
+      svg.property("value", Y[i]).dispatch("input", { bubbles: true });
     }
   }
 
@@ -174,22 +173,22 @@ export function LineChart(data, {
     path.style("mix-blend-mode", mixBlendMode).style("stroke", null);
     dot.attr("display", "none");
     svg.node().value = null;
-    svg.dispatch("input", {bubbles: true});
+    svg.dispatch("input", { bubbles: true });
   }
 
   function pointerclick(event) {
     const [xm, ym] = d3.pointer(event);
     const i = d3.least(I, i => Math.hypot(xScale(X[i]) - xm, yScale(Y[i]) - ym)); // closest point
-    
+
     circleData
       .attr("display", null)
       .attr("cx", `${xScale(X[i])}`)
       .attr("cy", `${yScale(Y[i])}`)
 
-    svg.property("value", Y[i]).dispatch("input", {bubbles: true});
-    
-    cb({"x": X[i], "y": Y[i], "i": i});
+    svg.property("value", Y[i]).dispatch("input", { bubbles: true });
+
+    onSelect({ "x": X[i], "y": Y[i], "i": i });
   }
 
-  return Object.assign(svg.node(), {value: null});
+  return Object.assign(svg.node(), { value: null });
 }

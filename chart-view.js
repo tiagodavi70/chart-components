@@ -1,56 +1,60 @@
-import {html, css, svg, LitElement} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+import { html, css, svg, LitElement } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
 
 export class ChartView extends LitElement {
   static styles = css``;
 
   static properties = {
-    
-    title: {type: String},
-    marginTop: {type: Number},
 
-    marginRight: {type: Number},
-    marginLeft: {type: Number},
-    width: {type: Number},
-    height: {type: Number},
+    title: { type: String },
+    marginTop: { type: Number },
 
-    xDomain: {type: Array},
-    xRange: {type: Array},
-    yDomain: {type: Array},
-    yRange: {type: Array},
-    xPadding: {type: String},
-    yLabel: {type: String},
-    color: {type: String},
+    marginRight: { type: Number },
+    marginLeft: { type: Number },
+    width: { type: Number },
+    height: { type: Number },
+
+    xDomain: { type: Array },
+    xRange: { type: Array },
+    yDomain: { type: Array },
+    yRange: { type: Array },
+    xPadding: { type: String },
+    yLabel: { type: String },
+    color: { type: String },
+    interactive: { type: Boolean },
+    onSelect: { type: Function }
   };
 
   get view_settings() {
     return {
       "title": this.title,
       "marginTop": this.marginTop,
-      "marginRight":this.marginRight,
+      "marginRight": this.marginRight,
       "marginBottom": this.marginBottom,
-      "marginLeft":this.marginLeft,
+      "marginLeft": this.marginLeft,
       "xDomain": this.xDomain,
       "xRange": this.xRange,
       "yDomain": this.yDomain,
       "yRange": this.yRange,
       "yLabel": this.yLabel,
       "color": this.color,
-      
-      ...(this.width) && {"width": this.width},
-      ...(this.height) && {"height": this.height}
+      "interactive": this.interactive,
+      "onSelect": this.onSelect,
+
+      ...(this.width) && { "width": this.width },
+      ...(this.height) && { "height": this.height }
     }
   }
 
   get settings() {
     return this.view_settings
   }
-  
+
   connectedCallback() {
     super.connectedCallback()
   }
 
   willUpdate(changedProperties) {
-    
+
   }
 
   constructor() {
@@ -68,6 +72,8 @@ export class ChartView extends LitElement {
     this.yRange = undefined; //= [this.height - this.marginBottom, this.marginTop]; // [bottom, top]
     this.yLabel; // a label for the y-axis
     this.color = "steelblue"; // mark fill color
+    this.interactive = false; // visual mark is selectable?
+    this.onSelect = () => { };
   }
 
   // height="${this.height - 2 * this.padding}"
