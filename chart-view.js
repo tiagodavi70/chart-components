@@ -7,7 +7,7 @@ export class ChartView extends LitElement {
 
     title: { type: String },
     marginTop: { type: Number },
-
+    marginBottom: { type: Number },
     marginRight: { type: Number },
     marginLeft: { type: Number },
     width: { type: Number },
@@ -19,7 +19,7 @@ export class ChartView extends LitElement {
     yRange: { type: Array },
     xPadding: { type: String },
     yLabel: { type: String },
-    color: { type: String },
+    color: { type: Function },
     interactive: { type: Boolean },
     onSelect: { type: Function }
   };
@@ -76,9 +76,8 @@ export class ChartView extends LitElement {
     this.onSelect = () => { };
   }
 
-  // height="${this.height - 2 * this.padding}"
   render() {
-    return html`<p>You should not see this</p>`;
+    return html`<p>This is a placeholder. You should use a chart type.</p>`;
   }
 }
 customElements.define('chart-view', ChartView);

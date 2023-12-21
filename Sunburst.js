@@ -2,19 +2,19 @@
 // Released under the ISC license.
 // https://observablehq.com/@d3/sunburst
 
-function Sunburst(data, { // data is either tabular (array of objects) or hierarchy (nested objects)
-  path, // as an alternative to id and parentId, returns an array identifier, imputing internal nodes
+export function Sunburst(data, { // data is either tabular (array of objects) or hierarchy (nested objects)
+  pathId, // as an alternative to id and parentId, returns an array identifier, imputing internal nodes
   id = Array.isArray(data) ? d => d.id : null, // if tabular data, given a d in data, returns a unique identifier (string)
   parentId = Array.isArray(data) ? d => d.parentId : null, // if tabular data, given a node d, returns its parent’s identifier
   children, // if hierarchical data, given a d in data, returns its children
   value, // given a node d, returns a quantitative value (for area encoding; null for count)
   sort = (a, b) => d3.descending(a.value, b.value), // how to sort nodes prior to layout
-  label, // given a node d, returns the name to display on the rectangle
+  //label, // given a node d, returns the name to display on the rectangle
   title, // given a node d, returns its hover text
   link, // given a node d, its link (if any)
   linkTarget = "_blank", // the target attribute for links (if any)
-  width = 640, // outer width, in pixels
-  height = 400, // outer height, in pixels
+  width, // outer width, in pixels
+  height, // outer height, in pixels
   margin = 1, // shorthand for margins
   marginTop = margin, // top margin, in pixels
   marginRight = margin, // right margin, in pixels
@@ -23,17 +23,25 @@ function Sunburst(data, { // data is either tabular (array of objects) or hierar
   padding = 1, // separation between arcs
   startAngle = 0, // the starting angle for the sunburst
   endAngle = 2 * Math.PI, // the ending angle for the sunburst
-  radius = Math.min(width - marginLeft - marginRight, height - marginTop - marginBottom) / 2, // outer radius
-  color = d3.interpolateRainbow, // color scheme, if any
+  radius = Math.min(width - marginLeft - marginRight, height - marginTop - marginBottom) / 10, // outer radius
+  color, // color scheme, if any
   fill = "#ccc", // fill for arcs (if no color encoding)
   fillOpacity = 0.6, // fill opacity for arcs
 } = {}) {
 
   let labelTransform = (d) => {
     let x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
-    let y = (d.y0 + d.y1) / 2 * this.radius;
+    let y = (d.y0 + d.y1) / 2 * radius;
     return `rotate(${x - 90}) translate(${y}, 0) rotate(${x < 180 ? 0 : 180})`;
   }
+
+  const hierarchy = d3.hierarchy(data)
+    .sum(d => d.value)
+    .sort((a, b) => b.value - a.value);
+  const root = d3.partition()
+    .size([2 * Math.PI, hierarchy.height + 1])
+    (hierarchy);
+  root.each(d => d.current = d);
 
   const svg = d3.create("svg")
     .attr("viewBox", [
@@ -49,8 +57,7 @@ function Sunburst(data, { // data is either tabular (array of objects) or hierar
     .attr("font-size", 10)
     .attr("text-anchor", "middle");
 
-  let radius = size / 8; // size / 6 for 2 layers
-  this.radius = radius;
+  //radius = size / 8; // size / 6 for 2 layers
 
   let arc = d3.arc()
     .startAngle(d => d.x0)
@@ -60,15 +67,17 @@ function Sunburst(data, { // data is either tabular (array of objects) or hierar
     .innerRadius(d => d.y0 * radius)
     .outerRadius(d => Math.max(d.y0 * radius, d.y1 * radius - 1))
 
-  this.arc = arc;
-  this.data.each(d => d.current = d);
+  if (color != null) {
+    color = d3.scaleSequential([0, root.children.length], color).unknown(fill);
+    root.children.forEach((child, i) => child.index = i);
+  }
 
   let path = svg.append("g")
     .selectAll("path")
-    .data(this.data.descendants().slice(0))
+    .data(root.descendants().slice(0))
     .join("path")
-    .attr("fill", d => { while (d.depth > 1) d = d.parent; return this.color(d.data.key); })
-    .attr("fill-opacity", d => arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0)
+    .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.index); })
+    .attr("fill-opacity", d => arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0) // create an opacity scale based on depth
     .attr("d", d => arc(d.current));
 
   path.filter(d => d.children)
@@ -76,31 +85,32 @@ function Sunburst(data, { // data is either tabular (array of objects) or hierar
     .on("click", clicked);
 
   path.append("title")
-    .text(d => `${d.ancestors().map(d => d.data.key).reverse().join("/")}\n${format(d.value)}`);
+    .text(d => `${d.ancestors().map(d => d.data.name).reverse().join("/")}\n${format(d.value)}`);
 
+  console.log(root.descendants());
   let label = svg.append("g")
     .attr("pointer-events", "none")
     .attr("text-anchor", "middle")
     .style("user-select", "none")
     .selectAll("text")
-    .data(this.data.descendants().slice(0))
+    .data(root.descendants().slice(0))
     .join("text")
     .attr("dy", "0.35em")
     .attr("fill-opacity", d => +labelVisible(d.current))
     .attr("transform", d => labelTransform(d.current))
-    .text(d => d.data.key);
+    .text(d => d.data.name);
 
   let parent = svg.append("circle")
-    .datum(this.data)
-    .attr("r", this.radius)
+    .datum(root)
+    .attr("r", radius)
     .attr("fill", "none")
     .attr("pointer-events", "all")
     .on("click", clicked);
 
-  function clicked(p) {
-    parent.datum(p.parent || data);
+  function clicked(e, p) {
+    parent.datum(p.parent || root);
 
-    data.each(d => d.target = {
+    root.each(d => d.target = {
       x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
       x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
       y0: Math.max(0, d.y0 - p.depth),

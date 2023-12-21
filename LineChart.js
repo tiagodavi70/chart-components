@@ -31,7 +31,8 @@ export function LineChart(data, {
   strokeOpacity, // stroke opacity of line
   mixBlendMode = "multiply", // blend mode of lines
   voronoi, // show a Voronoi overlay? (for debugging)
-  pointData = undefined, // point of the chart to highlight
+  pointData = undefined, // point of the chart to highlight,
+  interactive = false,
   onSelect = () => { } // callback for point data selection (if interactive is enabled)
 } = {}) {
   // Compute values.
